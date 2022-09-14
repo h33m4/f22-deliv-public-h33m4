@@ -13,7 +13,7 @@ import TextField from '@mui/material/TextField';
 import * as React from 'react';
 import { useState } from 'react';
 import { categories } from '../utils/categories';
-import { addEntry } from '../utils/mutations';
+import { addEntry, deleteEntry, updateEntry } from '../utils/mutations';
 
 // Modal component for individual entries.
 
@@ -66,13 +66,28 @@ export default function EntryModal({ entry, type, user }) {
       handleClose();
    };
 
-   // TODO: Add Edit Mutation Handler
+   const handleEdit = () => {
+      const updatedEntry = {
+         name: name,
+         link: link,
+         description: description,
+         user: user?.displayName ? user?.displayName : "GenericUser",
+         category: category,
+         userid: user?.uid,
+         id: entry.id,
+      };
 
-   // TODO: Add Delete Mutation Handler
+      updateEntry(updatedEntry).catch(console.error);
+      handleClose();
+   }
+
+   const handleDelete = () => {
+      deleteEntry(entry.id);
+      handleClose();
+   }
 
    // Button handlers for modal opening and inside-modal actions.
    // These buttons are displayed conditionally based on if adding or editing/opening.
-   // TODO: You may have to edit these buttons to implement editing/deleting functionality.
 
    const openButton =
       type === "edit" ? <IconButton onClick={handleClickOpen}>
@@ -85,8 +100,11 @@ export default function EntryModal({ entry, type, user }) {
 
    const actionButtons =
       type === "edit" ?
-         <DialogActions>
+         <DialogActions style={{ justifyContent: "space-between" }}>
+            <Button onClick={handleDelete}>Delete</Button>
+            <div style={{flex: '1 0 0'}} />  {/* Adding space between delete button and the rest */}
             <Button onClick={handleClose}>Cancel</Button>
+            <Button variant="contained" onClick={handleEdit}>Edit</Button>
          </DialogActions>
          : type === "add" ?
             <DialogActions>
@@ -110,6 +128,7 @@ export default function EntryModal({ entry, type, user }) {
                   variant="standard"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
+                  InputProps="display: none"
                />
                <TextField
                   margin="normal"

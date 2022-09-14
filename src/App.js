@@ -134,7 +134,7 @@ export default function App() {
             </Stack>
           </Grid>
           <Grid item xs={12}>
-            <EntryTable entries={entries} />
+            <EntryTable entries={entries} user={currentUser}/> {/* PASSED USER TO ENTRYTABLE SO THAT ENTRY MODAL CAN ACCESS IT */}
           </Grid>
         </Grid>
       )
