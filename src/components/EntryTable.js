@@ -8,16 +8,19 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TextField from '@mui/material/TextField';
 import EntryModal from './EntryModal';
 import { getCategory } from '../utils/categories';
 import { useState } from 'react';
+import { render } from '@testing-library/react';
 
 // Table component that displays entries on home screen
 
 export default function EntryTable({ entries, user }) {
    const [sortBy, setSortBy] = useState('name');
    const [ascending, setAscending] = useState(1);
-   
+   const [search, setSearch] = useState('');
+
    const handleChangeSort = (newSortBy) => {
       if (newSortBy === sortBy) {
          setAscending(ascending * -1);
@@ -29,7 +32,7 @@ export default function EntryTable({ entries, user }) {
    // Comparison function for entries.sort(); accounts for different datatypes that entryA/B could be
    // Return value < 0 if entryA should be before entryB, > 0 vice versa, == 0 if order doesn't change
    const comparison = (entryA, entryB) => {
-      switch (sortBy){
+      switch (sortBy) {
          case 'name':
             let nameA = entryA.name.toLowerCase();
             let nameB = entryB.name.toLowerCase();
@@ -65,40 +68,61 @@ export default function EntryTable({ entries, user }) {
                return 1 * ascending;
             }
             return 0;
-            
+
          default:
             return;
       }
    }
 
    entries.sort(comparison);
+   
+   // Search functionality
+   let renderedEntries = [];
+   if(search) {
+      entries.forEach((entry) => {
+         if (entry.name.toLowerCase().startsWith(search.toLowerCase())) {
+            renderedEntries = renderedEntries.concat(entry);
+         }
+      })
+   }
+   else {
+      renderedEntries = entries;
+   }
 
    return (
       <TableContainer component={Paper}>
+         <TextField
+            id="outlined-basic"
+            variant="filled"
+            fullWidth
+            label="Search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+         />
          <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
                <TableRow>
                   <TableCell>
                      Name
                      <IconButton onClick={() => handleChangeSort('name')}>
-                        <Sort/>
+                        <Sort />
                      </IconButton>
                   </TableCell>
                   <TableCell align="right">
                      <IconButton onClick={() => handleChangeSort('link')}>
-                        <Sort/>
+                        <Sort />
                      </IconButton>
                      Link
                   </TableCell>
                   <TableCell align="right">
                      <IconButton onClick={() => handleChangeSort('user')}>
-                        <Sort/>
+                        <Sort />
                      </IconButton>
                      User
                   </TableCell>
                   <TableCell align="right">
                      <IconButton onClick={() => handleChangeSort('category')}>
-                        <Sort/>
+                        <Sort />
                      </IconButton>
                      Category
                   </TableCell>
@@ -106,21 +130,22 @@ export default function EntryTable({ entries, user }) {
                </TableRow>
             </TableHead>
             <TableBody>
-               {entries.map((entry) => (
+               {renderedEntries.map((entry) => (
                   <TableRow
-                     key={entry.id}
-                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                     <TableCell component="th" scope="row">
-                        {entry.name}
-                     </TableCell>
-                     <TableCell align="right"><Link href={entry.link}>{entry.link}</Link></TableCell>
-                     <TableCell align="right">{entry.user}</TableCell>
-                     <TableCell align="right">{getCategory(entry.category).name}</TableCell>
-                     <TableCell sx={{ "padding-top": 0, "padding-bottom": 0 }} align="right">
-                        <EntryModal entry={entry} type="edit" user={user}/> {/* PASSED USER TO ENTRYMODAL SO THAT ENTRY MODAL CAN ACCESS IT */}
-                     </TableCell>
-                  </TableRow>
+                  key={entry.id}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+               >  
+
+                  <TableCell component="th" scope="row">
+                     {entry.name}
+                  </TableCell>
+                  <TableCell align="right"><Link href={entry.link}>{entry.link}</Link></TableCell>
+                  <TableCell align="right">{entry.user}</TableCell>
+                  <TableCell align="right">{getCategory(entry.category).name}</TableCell>
+                  <TableCell sx={{ "padding-top": 0, "padding-bottom": 0 }} align="right">
+                     <EntryModal entry={entry} type="edit" user={user} /> {/* PASSED USER TO ENTRYMODAL SO THAT ENTRY MODAL CAN ACCESS IT */}
+                  </TableCell>
+               </TableRow>
                ))}
             </TableBody>
          </Table>
