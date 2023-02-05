@@ -35,7 +35,60 @@ export default function EntryModal({ entry, type, user }) {
    const [link, setLink] = useState(entry.link);
    const [description, setDescription] = useState(entry.description);
    const [category, setCategory] = React.useState(entry.category);
+   const [linkInvalid, setLinkInvalid] = useState(false);
+   const [missingData, setMissingData] = React.useState({name: false, link: false});
 
+   // Finds and updates missingData, returns true if any data is missing
+   
+   const findMissing = (newEntry) => {
+      let missing = false;
+      const thisMissingData = {name: false, link: false};
+      if (!newEntry.name) {
+         thisMissingData.name = true;
+         missing = true;
+      }
+      if (!newEntry.link) {
+         thisMissingData.link = true;
+         missing = true;
+      }
+      setMissingData(thisMissingData);
+      return missing;
+   }
+
+   const isValidLink = (link) => {
+      try {
+         return Boolean(new URL(link));
+      } catch (e) {
+         return false;
+      }
+   }
+
+   const handleChange = (event) => {
+      const val = event.target.value;
+
+      // Reset validation variables
+      if (linkInvalid) setLinkInvalid(false);
+      if (missingData.name) setMissingData({...missingData, name: false});
+      if (missingData.link) setMissingData({...missingData, link: false});
+      
+      switch (event.target.name) {
+         case 'name':
+            setName(val);
+            return;
+         case 'link':
+            setLink(val);
+            return;
+         case 'description':
+            setDescription(val);
+            return;
+         case 'category':
+            setCategory(val);
+            return;
+         default:
+            return;
+      }
+   }
+   
    // Modal visibility handlers
 
    const handleClickOpen = () => {
@@ -62,8 +115,14 @@ export default function EntryModal({ entry, type, user }) {
          userid: user?.uid,
       };
 
-      addEntry(newEntry).catch(console.error);
-      handleClose();
+      // Only add if no data is missing and if link is valid
+      let missing = findMissing(newEntry);
+      if (!isValidLink(link) && !missing) setLinkInvalid(true)
+
+      if (!(missing || !isValidLink(link))) {
+         addEntry(newEntry).catch(console.error);
+         handleClose();
+      }
    };
 
    const handleEdit = () => {
@@ -77,12 +136,18 @@ export default function EntryModal({ entry, type, user }) {
          id: entry.id,
       };
 
-      updateEntry(updatedEntry).catch(console.error);
-      handleClose();
+      // Only add if no data is missing and if link is valid
+      let missing = findMissing(updatedEntry);
+      if (!isValidLink(link) && !missing) setLinkInvalid(true)
+
+      if (!(missing || !isValidLink(link))) {
+         updateEntry(updatedEntry).catch(console.error);
+         handleClose();
+      }
    }
 
    const handleDelete = () => {
-      deleteEntry(entry.id);
+      deleteEntry(entry);
       handleClose();
    }
 
@@ -113,6 +178,11 @@ export default function EntryModal({ entry, type, user }) {
             </DialogActions>
             : null;
 
+
+   const errorMsgStyles = {
+      color: 'red',
+   }
+
    return (
       <div>
          {openButton}
@@ -122,26 +192,32 @@ export default function EntryModal({ entry, type, user }) {
                {/* TODO: Feel free to change the properties of these components to implement editing functionality. The InputProps props class for these MUI components allows you to change their traditional CSS properties. */}
                <TextField
                   margin="normal"
+                  name="name"
                   id="name"
                   label="Name"
                   fullWidth
                   variant="standard"
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={handleChange}
                   InputProps="display: none"
                />
+               {missingData.name ? <p style={errorMsgStyles}>Name field cannot be empty.</p> : <></>}
                <TextField
                   margin="normal"
+                  name="link"
                   id="link"
                   label="Link"
                   placeholder="e.g. https://google.com"
                   fullWidth
                   variant="standard"
                   value={link}
-                  onChange={(event) => setLink(event.target.value)}
+                  onChange={handleChange}
                />
+               {missingData.link ? <p style={errorMsgStyles}>Link field cannot be empty.</p> : <></>}
+               {linkInvalid ? <p style={errorMsgStyles}>Invalid link.</p> : <></>}
                <TextField
                   margin="normal"
+                  name="description"
                   id="description"
                   label="Description"
                   fullWidth
@@ -149,17 +225,18 @@ export default function EntryModal({ entry, type, user }) {
                   multiline
                   maxRows={8}
                   value={description}
-                  onChange={(event) => setDescription(event.target.value)}
+                  onChange={handleChange}
                />
 
                <FormControl fullWidth sx={{ "margin-top": 20 }}>
                   <InputLabel id="demo-simple-select-label">Category</InputLabel>
                   <Select
                      labelId="demo-simple-select-label"
+                     name="category"
                      id="demo-simple-select"
                      value={category}
                      label="Category"
-                     onChange={(event) => setCategory(event.target.value)}
+                     onChange={handleChange}
                   >
                      {categories.map((category) => (<MenuItem value={category.id}>{category.name}</MenuItem>))}
                   </Select>

@@ -26,7 +26,8 @@ export default function EntryTable({ entries, user }) {
       setSortBy(newSortBy);
    }
 
-   // uses sortBy to check different properties of the entries in the entries list
+   // Comparison function for entries.sort(); accounts for different datatypes that entryA/B could be
+   // Return value < 0 if entryA should be before entryB, > 0 vice versa, == 0 if order doesn't change
    const comparison = (entryA, entryB) => {
       switch (sortBy){
          case 'name':
@@ -40,6 +41,7 @@ export default function EntryTable({ entries, user }) {
                return 1 * ascending;
             }
             return 0;
+
          case 'link':
             let linkA = entryA.link.toLowerCase();
             let linkB = entryB.link.toLowerCase();
@@ -51,9 +53,10 @@ export default function EntryTable({ entries, user }) {
                return 1 * ascending;
             }
             return 0;
+
          case 'category':
-            let catA = getCategory(entryA.category).name.toLowerCase();
-            let catB = getCategory(entryB.category).name.toLowerCase();
+            let catA = getCategory(entryA.category).name.toLowerCase(); // categories are stored as an id
+            let catB = getCategory(entryB.category).name.toLowerCase(); // getCategory allows us to acquire category object with name prop for sorting
 
             if (catA < catB) {
                return -1 * ascending;
@@ -62,6 +65,7 @@ export default function EntryTable({ entries, user }) {
                return 1 * ascending;
             }
             return 0;
+            
          default:
             return;
       }

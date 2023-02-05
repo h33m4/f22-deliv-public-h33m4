@@ -42,6 +42,6 @@ export async function updateEntry(entry) {
    });
 }
 
-export async function deleteEntry(id) {
-   await deleteDoc(doc(db, "entries", id));
+export async function deleteEntry(entry) {
+   await deleteDoc(doc(db, "entries", entry.id));
 }
